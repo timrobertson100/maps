@@ -7,9 +7,6 @@ import com.google.common.base.Preconditions
 import com.google.common.io.Resources
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.HTable
-import org.apache.hadoop.hbase.mapreduce.PatchedHFileOutputFormat2
-import org.apache.hadoop.mapreduce.Job
 import org.gbif.maps.common.projection.TileSchema
 
 /**
@@ -41,11 +38,10 @@ object Configurations {
     conf.set("hbase.zookeeper.quorum", appConfig.hbase.zkQuorum);
 
     // NOTE: job creates a copy of the conf
-    val job = new Job(conf, appConfig.appName) // name not actually used since we don't submit MR
-    val table = new HTable(conf, tableName)
-    PatchedHFileOutputFormat2.configureIncrementalLoad(job, table);
-
-    return job.getConfiguration // important
+    //val job = new Job(conf, appConfig.appName) // name not actually used since we don't submit MR
+    //val table = new HTable(conf, tableName)
+    //return job.getConfiguration // important
+    return conf
   }
 }
 

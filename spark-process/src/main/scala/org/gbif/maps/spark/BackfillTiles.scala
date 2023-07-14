@@ -4,9 +4,9 @@ import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 import no.ecc.vectortile.VectorTileEncoder
 import org.apache.hadoop.hbase.KeyValue
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
-import org.apache.hadoop.hbase.mapreduce.PatchedHFileOutputFormat2
+import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.spark.sql.{SparkSession, DataFrame}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.Partitioner
 import org.gbif.maps.common.projection.Tiles
 import org.gbif.maps.common.hbase.ModulusSalt
@@ -222,7 +222,7 @@ object BackfillTiles {
         config.targetDirectory + "/tiles/" + projectionConfig.srs.replaceAll(":", "_") + "/z" + z,
         classOf[ImmutableBytesWritable],
         classOf[KeyValue],
-        classOf[PatchedHFileOutputFormat2],
+        classOf[HFileOutputFormat2],
         Configurations.hfileOutputConfiguration(config, config.tilePyramid.tableName))
 
       downscale = true; // TODO: such as hack!

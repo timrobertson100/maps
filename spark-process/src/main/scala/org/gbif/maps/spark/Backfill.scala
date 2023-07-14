@@ -4,13 +4,11 @@ import java.util.{Properties, UUID}
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.SparkSession
-import com.databricks.spark.avro._
 import com.rojoma.simplearm.v2.using
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.hadoop.conf.Configuration
-import org.gbif.maps.workflow.WorkflowParams
 import org.slf4j.LoggerFactory
 
 /**
@@ -42,17 +40,18 @@ object Backfill {
     // in args(1).  Note: this was a considered decision, opting to a) keep the spark module nice to develop with a
     // single config and b) using YAML to keep the array functionality which is a nuisance in the config formats
     // possible in Oozie.
-    if (args.length == 3) {
-      logger.warn("Overwriting config with Oozie supplied configuration")
-      val overrideParams = WorkflowParams.buildFromOozie(args(2))
-      config.hbase.zkQuorum = overrideParams.getZkQuorum
-      config.snapshotDirectory = overrideParams.getSnapshotDirectory
-      config.sourceSubdirectory = overrideParams.getSourceSubdirectory
-      config.pointFeatures.tableName = overrideParams.getTargetTable
-      config.tilePyramid.tableName = overrideParams.getTargetTable
-      config.targetDirectory = overrideParams.getTargetDirectory
-      config.hdfsLockConfig.zkConnectionString = overrideParams.getHdfsLockZkConnectionString
-    }
+    //if (args.length == 3) {
+    // TODO: Here the settings for the run is configured
+    //  logger.warn("Overwriting config with Oozie supplied configuration")
+    //  val overrideParams = WorkflowParams.buildFromOozie(args(2))
+    //  config.hbase.zkQuorum = overrideParams.getZkQuorum
+    //  config.snapshotDirectory = overrideParams.getSnapshotDirectory
+    //  config.sourceSubdirectory = overrideParams.getSourceSubdirectory
+    //  config.pointFeatures.tableName = overrideParams.getTargetTable
+    //  config.tilePyramid.tableName = overrideParams.getTargetTable
+    //  config.targetDirectory = overrideParams.getTargetDirectory
+    //  config.hdfsLockConfig.zkConnectionString = overrideParams.getHdfsLockZkConnectionString
+    //}
 
     // setup and read the source
     using(SparkSession.builder().appName(config.appName).getOrCreate()) { spark =>
@@ -67,7 +66,7 @@ object Backfill {
       try {
         logger.info("Reading Directory {}", snapshotSource)
 
-        val df = spark.read.avro(snapshotSource) // Select only the required columns
+        val df = spark.read.format("avro").load(snapshotSource) // Select only the required columns
           .select($"datasetkey", $"publishingorgkey", $"publishingcountry", $"networkkey", $"countrycode",
                   $"basisofrecord", $"decimallatitude", $"decimallongitude", $"kingdomkey", $"phylumkey", $"classkey",
                   $"orderkey", $"familykey", $"genuskey", $"specieskey", $"taxonkey", $"year", $"occurrencestatus",

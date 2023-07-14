@@ -2,7 +2,7 @@ package org.gbif.maps.spark
 
 import org.apache.hadoop.hbase.KeyValue
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
-import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat
+import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.sql.{SparkSession, DataFrame}
 import org.gbif.maps.common.hbase.ModulusSalt
@@ -99,7 +99,7 @@ object BackfillPoints {
     })
 
     // save the results
-    res.saveAsNewAPIHadoopFile(config.targetDirectory + "/points", classOf[ImmutableBytesWritable], classOf[KeyValue], classOf[HFileOutputFormat], Configurations.hfileOutputConfiguration(config, config.pointFeatures.tableName))
+    res.saveAsNewAPIHadoopFile(config.targetDirectory + "/points", classOf[ImmutableBytesWritable], classOf[KeyValue], classOf[HFileOutputFormat2], Configurations.hfileOutputConfiguration(config, config.pointFeatures.tableName))
 
   }
 }

@@ -2,12 +2,12 @@ package org.gbif.maps.tile
 
 import org.gbif.maps.common.projection.TileSchema
 import org.gbif.maps.tile.TileUtils.Region._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Unit tests for TileUtils.
   */
-class TileUtilsSuite extends FunSuite {
+class TileUtilsSuite extends AnyFunSuite {
 
   // this is critical path stuff so test all combinations that will be used
   test("Verify maximum tile address") {

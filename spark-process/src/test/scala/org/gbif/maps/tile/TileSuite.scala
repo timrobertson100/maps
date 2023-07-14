@@ -1,14 +1,14 @@
 package org.gbif.maps.tile
 
 import org.gbif.maps.common.projection.TileSchema
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.mutable.{HashSet => MHashSet}
 
 /**
   * Unit tests for Tile package functions and generic operations on the Tile class.
   */
-class TileSuite extends FunSuite {
+class TileSuite extends AnyFunSuite {
   // utility container for a pixel on a tile
   private case class TilePixelCount(z: Int, x: Long, y: Long, px: Int, py: Int, count: Int)
 

@@ -1,14 +1,14 @@
 package org.gbif.maps.tile
 
 import org.gbif.maps.io.PointFeature.PointFeatures.Feature.BasisOfRecord
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.mutable.{Map => MMap}
 
 /**
   * Unit tests for OccurrenceDensityTile.
   */
-class OccurrenceDensityTileSuite extends FunSuite {
+class OccurrenceDensityTileSuite extends AnyFunSuite {
 
   test("Verify accumulation of features") {
     val tile = new OccurrenceDensityTile(new ZXY(0,0,0), 512, 64)

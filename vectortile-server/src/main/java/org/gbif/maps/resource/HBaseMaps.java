@@ -20,6 +20,8 @@ import org.gbif.maps.common.meta.Metastores;
 import org.gbif.maps.config.ConfigUtils;
 import org.gbif.maps.io.PointFeature;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +52,7 @@ import lombok.Data;
  * The data access service for the map data which resides in HBase.
  * This implements a small cache since we recognise that map use often results in similar requests.
  */
-public class HBaseMaps {
+public class HBaseMaps implements Closeable {
   private static final String BACKBONE_UUID = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
   private static final Logger LOG = LoggerFactory.getLogger(HBaseMaps.class);
   private final Connection connection;
@@ -277,6 +279,30 @@ public class HBaseMaps {
       LOG.error("Unable to read the point table date from ZK", e);
     }
     return Optional.empty();
+  }
+
+  @Override
+  public void close() throws IOException {
+    IOException exception = null;
+    try {
+      metastore.close();
+    } catch (IOException e) {
+      exception = e;
+    }
+
+    try {
+      connection.close();
+    } catch (IOException e) {
+      if (exception != null) {
+        exception.addSuppressed(e);
+      } else {
+        exception = e;
+      }
+    }
+
+    if (exception != null) {
+      throw exception;
+    }
   }
 
   /**

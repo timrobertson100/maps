@@ -199,15 +199,15 @@ public class TileServerApplication {
       return highLevelClient;
     }
 
-    static class ManagedRestHighLevelClient extends RestHighLevelClient {
+    public static class ManagedRestHighLevelClient extends RestHighLevelClient {
 
       private Closeable extraCloseable;
 
-      ManagedRestHighLevelClient(RestClientBuilder restClientBuilder) {
+      public ManagedRestHighLevelClient(RestClientBuilder restClientBuilder) {
         super(restClientBuilder);
       }
 
-      void setExtraCloseable(Closeable extraCloseable) {
+      public void setExtraCloseable(Closeable extraCloseable) {
         this.extraCloseable = extraCloseable;
       }
 

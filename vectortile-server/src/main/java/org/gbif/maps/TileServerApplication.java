@@ -30,6 +30,7 @@ import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -120,7 +121,7 @@ public class TileServerApplication {
       return new TileServerConfiguration();
     }
 
-    @Bean("esOccurrenceClient")
+    @Bean(value = "esOccurrenceClient", destroyMethod = "close")
     @ConditionalOnExpression("${esOccurrenceConfiguration.enabled}")
     public RestHighLevelClient provideOccurrenceEsClient(TileServerConfiguration tileServerConfiguration) {
       return provideEsClient(tileServerConfiguration.getEsOccurrenceConfiguration().getElasticsearch());
@@ -184,7 +185,7 @@ public class TileServerApplication {
         builder.setFailureListener(sniffOnFailureListener);
       }
 
-      RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+      RestHighLevelClient highLevelClient = new ManagedRestHighLevelClient(builder);
 
       if (esConfig.getSniffInterval() > 0) {
         Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
@@ -192,18 +193,47 @@ public class TileServerApplication {
           .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
           .build();
         sniffOnFailureListener.setSniffer(sniffer);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-          sniffer.close();
-          try {
-            highLevelClient.close();
-          } catch (IOException e) {
-            throw new IllegalStateException("Couldn't close ES client", e);
-          }
-        }));
+        ((ManagedRestHighLevelClient) highLevelClient).setExtraCloseable(sniffer);
       }
 
       return highLevelClient;
+    }
+
+    static class ManagedRestHighLevelClient extends RestHighLevelClient {
+
+      private Closeable extraCloseable;
+
+      ManagedRestHighLevelClient(RestClientBuilder restClientBuilder) {
+        super(restClientBuilder);
+      }
+
+      void setExtraCloseable(Closeable extraCloseable) {
+        this.extraCloseable = extraCloseable;
+      }
+
+      @Override
+      public void close() throws IOException {
+        IOException exception = null;
+        if (extraCloseable != null) {
+          try {
+            extraCloseable.close();
+          } catch (IOException e) {
+            exception = e;
+          }
+        }
+        try {
+          super.close();
+        } catch (IOException e) {
+          if (exception != null) {
+            exception.addSuppressed(e);
+          } else {
+            exception = e;
+          }
+        }
+        if (exception != null) {
+          throw exception;
+        }
+      }
     }
 
     @Bean("occurrenceHeatmapsEsService")
@@ -225,7 +255,7 @@ public class TileServerApplication {
     }
 
 
-    @Bean
+    @Bean(destroyMethod = "close")
     @Profile("!es-only")
     HBaseMaps hBaseMaps(TileServerConfiguration tileServerConfiguration, SpringCache2kCacheManager cacheManager, MeterRegistry meterRegistry,
                         Cache2kConfig<String, Optional<PointFeature.PointFeatures>> pointCacheConfiguration,
